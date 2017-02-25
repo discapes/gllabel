@@ -11,10 +11,12 @@
 #include <glm/gtx/transform.hpp>
 #include <codecvt>
 #include <iomanip>
+#include <fstream>
 
 static uint32_t width = 1280;
 static uint32_t height = 800;
 
+GLuint fbTex, warpShader, uWarpAmount;
 static GLLabel *Label;
 static bool spin = false;
 static FT_Face defaultFace;
@@ -22,6 +24,7 @@ static FT_Face boldFace;
 float horizontalTransform = 0.0;
 float verticalTransform = 0.8;
 float scale = 1;
+static float warpAmount = 0.0f;
 
 void onKeyPress(GLFWwindow *window, int key, int scanCode, int action, int mods);
 void onCharTyped(GLFWwindow *window, unsigned int codePoint, int mods);
@@ -29,6 +32,7 @@ void onScroll(GLFWwindow *window, double deltaX, double deltaY);
 void onResize(GLFWwindow *window, int width, int height);
 std::u32string toUTF32(const std::string &s);
 static glm::vec3 pt(float pt);
+static GLuint loadShaderProgramFile(const char *vertexShaderPath, const char *fragmentShaderPath);
 
 int main()
 {
@@ -101,13 +105,52 @@ int main()
 	Label->SetCaretPosition(Label->GetText().size());
 	
 	GLLabel fpsLabel;
+
+	// Framebuffer for two-pass rendering
+	GLuint fb, fbDepth;
+	glGenFramebuffers(1, &fb);
+	glBindFramebuffer(GL_FRAMEBUFFER, fb);
+	glGenTextures(1, &fbTex);
+	glBindTexture(GL_TEXTURE_2D, fbTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, fbTex, 0);
+	GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+	glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
+	float fsQuad[] = {
+	   //X, Y,  U, V
+		 1, 1,  1, 1,
+		 1,-1,  1, 0,
+		-1,-1,  0, 0,
+		 1, 1,  1, 1,
+		-1,-1,  0, 0,
+		-1, 1,  0, 1
+	};
+
+	GLuint fsQuadBuffer;
+	glGenBuffers(1, &fsQuadBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, fsQuadBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(fsQuad), fsQuad, GL_STATIC_DRAW);
+
+	warpShader = loadShaderProgramFile("warpvs.glsl", "warpfs.glsl");
+	glUseProgram(warpShader);
 	
+	GLuint uWarpSampler = glGetUniformLocation(warpShader, "uSampler");
+	uWarpAmount = glGetUniformLocation(warpShader, "uAmt");
+	GLuint uWarpTime = glGetUniformLocation(warpShader, "uT");
+	glUniform1i(uWarpSampler, 0);
+	glUniform2f(uWarpAmount, warpAmount, warpAmount);
+	glUniform2f(uWarpTime, 0.0f, 0.0f);
+
 	int fpsFrame = 0;
 	double fpsStartTime = glfwGetTime();
 	while(!glfwWindowShouldClose(window))
 	{
 		float time = glfwGetTime();
 		
+		glBindFramebuffer(GL_FRAMEBUFFER, fb);
 		glClearColor(160/255.0, 169/255.0, 175/255.0, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 
@@ -126,6 +169,20 @@ int main()
 				glm::vec3(-0.9 + horizontalTransform, verticalTransform, 0));
 			Label->Render(time, mat*kS);
 		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, fbTex);
+		glBindBuffer(GL_ARRAY_BUFFER, fsQuadBuffer);
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*4, (void*)0);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float)*4, (void*)(sizeof(float)*2));
+		glUseProgram(warpShader);
+		glUniform2f(uWarpTime, time, time);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
 		
 		// Window size might change, so recalculate this (and other pt() calls)
 		glm::mat4 fpsTransform = glm::scale(glm::translate(glm::mat4(), glm::vec3(-1, 0.86, 0)), pt(10));
@@ -182,6 +239,14 @@ void onKeyPress(GLFWwindow *window, int key, int scanCode, int action, int mods)
 			Label->SetCaretPosition(Label->GetCaretPosition() - 1);
 		}
 	}
+	else if(key == GLFW_KEY_TAB)
+	{
+		glUseProgram(warpShader);
+		warpAmount += 0.02f;
+		if(warpAmount >= 0.04)
+			warpAmount = 0;
+		glUniform2f(uWarpAmount, warpAmount, warpAmount);
+	}
 	else if(key == GLFW_KEY_ENTER)
 	{
 		Label->InsertText(U"\n", Label->GetCaretPosition(), 1, glm::vec4(0,0,0,1), rightShift?boldFace:defaultFace);
@@ -235,7 +300,9 @@ void onResize(GLFWwindow *window, int w, int h)
 {
 	width = w;
 	height = h;
-	glViewport(0,0,w,h);
+	glBindTexture(GL_TEXTURE_2D, fbTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glViewport(0,0,width,height);
 }
 
 std::u32string toUTF32(const std::string &s)
@@ -253,4 +320,76 @@ static glm::vec3 pt(float pt)
 
 	float scale = emUnits * pt / 72.0;
 	return glm::vec3(scale * aspect, scale, 0);
+}
+
+static GLuint loadShaderProgramFile(const char *vertexShaderPath, const char *fragmentShaderPath)
+{
+	// Compile vertex shader
+	std::ifstream vsStream(vertexShaderPath);
+	std::string vsCode((std::istreambuf_iterator<char>(vsStream)), (std::istreambuf_iterator<char>()));
+	const char *vsCodeC = vsCode.c_str();
+	
+	GLuint vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShaderId, 1, &vsCodeC, NULL);
+	glCompileShader(vertexShaderId);
+	
+	GLint result = GL_FALSE;
+	int infoLogLength = 0;
+	glGetShaderiv(vertexShaderId, GL_COMPILE_STATUS, &result);
+	glGetShaderiv(vertexShaderId, GL_INFO_LOG_LENGTH, &infoLogLength);
+	if(infoLogLength > 1)
+	{
+		std::vector<char> infoLog(infoLogLength+1);
+		glGetShaderInfoLog(vertexShaderId, infoLogLength, NULL, &infoLog[0]);
+		printf("[Vertex] %s\n", &infoLog[0]);
+	}
+	if(!result)
+		return 0;
+
+	// Compile fragment shader
+	std::ifstream fsStream(fragmentShaderPath);
+	std::string fsCode((std::istreambuf_iterator<char>(fsStream)), (std::istreambuf_iterator<char>()));
+	const char *fsCodeC = fsCode.c_str();
+	
+	GLuint fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShaderId, 1, &fsCodeC, NULL);
+	glCompileShader(fragmentShaderId);
+	
+	result = GL_FALSE, infoLogLength = 0;
+	glGetShaderiv(fragmentShaderId, GL_COMPILE_STATUS, &result);
+	glGetShaderiv(fragmentShaderId, GL_INFO_LOG_LENGTH, &infoLogLength);
+	if(infoLogLength > 1)
+	{
+		std::vector<char> infoLog(infoLogLength);
+		glGetShaderInfoLog(fragmentShaderId, infoLogLength, NULL, &infoLog[0]);
+		printf("[Fragment] %s\n", &infoLog[0]);
+	}
+	if(!result)
+		return 0;
+	
+	// Link the program
+	GLuint programId = glCreateProgram();
+	glAttachShader(programId, vertexShaderId);
+	glAttachShader(programId, fragmentShaderId);
+	glLinkProgram(programId);
+
+	result = GL_FALSE, infoLogLength = 0;
+	glGetProgramiv(programId, GL_LINK_STATUS, &result);
+	glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &infoLogLength);
+	if(infoLogLength > 1)
+	{
+		std::vector<char> infoLog(infoLogLength+1);
+		glGetProgramInfoLog(programId, infoLogLength, NULL, &infoLog[0]);
+		printf("[Shader Linker] %s\n", &infoLog[0]);
+	}
+	if(!result)
+		return 0;
+
+	glDetachShader(programId, vertexShaderId);
+	glDetachShader(programId, fragmentShaderId);
+	
+	glDeleteShader(vertexShaderId);
+	glDeleteShader(fragmentShaderId);
+
+	return programId;
 }
