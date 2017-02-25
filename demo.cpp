@@ -93,7 +93,7 @@ int main()
 	defaultFace = GLFontManager::GetFontManager()->GetDefaultFont();
 	boldFace = GLFontManager::GetFontManager()->GetFontFromPath("/usr/share/fonts/TTF/DroidSans-Bold.ttf");
 	
-	Label->SetText(U"Welcome to vector-based GPU text rendering!\nType whatver you want!\n\nPress LEFT/RIGHT to move cursor.\nPress ESC to toggle rotate.\nScroll vertically/horizontally to move.\nScroll while holding shift to zoom.\nRight-shift for bold.\nHold ALT to type in ", 1, glm::vec4(0.5,0,0,1), defaultFace);
+	Label->SetText(U"Welcome to vector-based GPU text rendering!\nType whatever you want!\n\nPress LEFT/RIGHT to move cursor.\nPress ESC to toggle rotate.\nScroll vertically/horizontally to move.\nScroll while holding shift to zoom.\nRight-shift for bold.\nHold ALT to type in ", 1, glm::vec4(0.5,0,0,1), defaultFace);
 	Label->AppendText(U"r", 1, glm::vec4(0.58, 0, 0.83, 1), defaultFace);
 	Label->AppendText(U"a", 1, glm::vec4(0.29, 0, 0.51, 1), defaultFace);
 	Label->AppendText(U"i", 1, glm::vec4(0,    0, 1,    1), defaultFace);
@@ -242,7 +242,10 @@ void onKeyPress(GLFWwindow *window, int key, int scanCode, int action, int mods)
 	else if(key == GLFW_KEY_TAB)
 	{
 		glUseProgram(warpShader);
-		warpAmount += 0.02f;
+		if(warpAmount == 0)
+			warpAmount = 0.005f;
+		else
+			warpAmount += 0.02f;
 		if(warpAmount >= 0.04)
 			warpAmount = 0;
 		glUniform2f(uWarpAmount, warpAmount, warpAmount);
@@ -263,6 +266,26 @@ void onKeyPress(GLFWwindow *window, int key, int scanCode, int action, int mods)
 	else if(key == GLFW_KEY_RIGHT)
 	{
 		Label->SetCaretPosition(Label->GetCaretPosition() + 1);
+	}
+	else if(key == GLFW_KEY_RIGHT_ALT)
+	{	
+		Label->SetText(U"Welcome to vector-based GPU text rendering!\nType whatever you want!\n\nPress LEFT/RIGHT to move cursor.\nPress ESC to toggle rotate.\nScroll vertically/horizontally to move.\nScroll while holding shift to zoom.\nRight-shift for bold.\nHold ALT to type in ", 1, glm::vec4(0.5,0,0,1), defaultFace);
+		Label->AppendText(U"r", 1, glm::vec4(0.58, 0, 0.83, 1), defaultFace);
+		Label->AppendText(U"a", 1, glm::vec4(0.29, 0, 0.51, 1), defaultFace);
+		Label->AppendText(U"i", 1, glm::vec4(0,    0, 1,    1), defaultFace);
+		Label->AppendText(U"n", 1, glm::vec4(0,    1, 0,    1), defaultFace);
+		Label->AppendText(U"b", 1, glm::vec4(1,    1, 0,    1), defaultFace);
+		Label->AppendText(U"o", 1, glm::vec4(1,    0.5, 0,  1), defaultFace);
+		Label->AppendText(U"w", 1, glm::vec4(1,    0, 0,    1), defaultFace);
+		Label->AppendText(U"!\n", 1, glm::vec4(0.5,0,0,1), defaultFace);
+		Label->SetCaretPosition(Label->GetText().size());
+		horizontalTransform = 0.1;
+		verticalTransform = 0.7;
+		scale = 1;
+		spin = false;
+		warpAmount = 0.005f;
+		glUseProgram(warpShader);
+		glUniform2f(uWarpAmount, warpAmount, warpAmount);
 	}
 }
 
