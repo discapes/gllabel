@@ -29,6 +29,7 @@ void onScroll(GLFWwindow *window, double deltaX, double deltaY);
 void onResize(GLFWwindow *window, int width, int height);
 std::u32string toUTF32(const std::string &s);
 static glm::vec3 pt(float pt);
+static bool fileExists(std::string name);
 
 int main()
 {
@@ -85,10 +86,18 @@ int main()
 	Label = new GLLabel();
 	Label->ShowCaret(true);
 
-	printf("Loading font files. If this crashes, you probably don't have Droid Sans and Noto Sans installed at /usr/share/fonts.\n");
+
 	defaultFace = GLFontManager::GetFontManager()->GetDefaultFont();
-	boldFace = GLFontManager::GetFontManager()->GetFontFromPath("/usr/share/fonts/TTF/DroidSans-Bold.ttf");
-	
+	std::string boldFont1 = "/usr/share/fonts/TTF/DroidSans-Bold.ttf";
+	std::string boldFont2 = "/usr/share/fonts/noto/NotoSans-Bold.ttf";
+	if (fileExists(boldFont1)) boldFace = GLFontManager::GetFontManager()->GetFontFromPath(boldFont1);
+	else if (fileExists(boldFont2)) boldFace = GLFontManager::GetFontManager()->GetFontFromPath(boldFont2);
+	else
+	{
+		fprintf(stderr, "Could not find bold font at %s or %s!\n", boldFont1.c_str(), boldFont2.c_str());
+		exit(1);
+	}
+
 	Label->SetText(U"Welcome to vector-based GPU text rendering!\nType whatver you want!\n\nPress LEFT/RIGHT to move cursor.\nPress ESC to toggle rotate.\nScroll vertically/horizontally to move.\nScroll while holding shift to zoom.\nRight-shift for bold.\nHold ALT to type in ", 1, glm::vec4(0.5,0,0,1), defaultFace);
 	Label->AppendText(U"r", 1, glm::vec4(0.58, 0, 0.83, 1), defaultFace);
 	Label->AppendText(U"a", 1, glm::vec4(0.29, 0, 0.51, 1), defaultFace);
@@ -154,6 +163,16 @@ int main()
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;
+}
+
+static bool fileExists(std::string name)
+{
+	if (FILE* file = fopen(name.c_str(), "r"))
+	{
+		fclose(file);
+		return true;
+	}
+	return false;
 }
 
 static bool leftShift = false;

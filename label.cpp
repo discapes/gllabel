@@ -359,11 +359,28 @@ FT_Face GLFontManager::GetFontFromName(std::string fontName)
 	std::string path = fontName; // TODO
 	return GLFontManager::GetFontFromPath(path);
 }
+static bool fileExists(std::string name)
+{
+	if (FILE* file = fopen(name.c_str(), "r"))
+	{
+		fclose(file);
+		return true;
+	}
+	return false;
+}
 FT_Face GLFontManager::GetDefaultFont()
 {
-	// TODO
-	if(!defaultFace)
-		defaultFace = GLFontManager::GetFontFromPath("/usr/share/fonts/noto/NotoSans-Regular.ttc");
+	if(!defaultFace) {
+		std::string defaultFont1 = "/usr/share/fonts/noto/NotoSans-Regular.ttc";
+		std::string defaultFont2 = "/usr/share/fonts/noto/NotoSans-Regular.ttf";
+		if (fileExists(defaultFont1)) defaultFace = GLFontManager::GetFontFromPath(defaultFont1);
+		else if (fileExists(defaultFont2)) defaultFace = GLFontManager::GetFontFromPath(defaultFont2);
+		else
+		{
+			fprintf(stderr, "Could not find default font at %s or %s!\n", defaultFont1.c_str(), defaultFont2.c_str());
+			exit(1);
+		}
+	}
 	return defaultFace;
 }
 
