@@ -30,6 +30,7 @@ Dependencies:
 * GLM
 * Freetype2
 * CMake (building)
+
 To build and play the demo, run the following commands:
 ```
 mkdir build
@@ -37,6 +38,7 @@ cmake . -B build
 cmake --build build
 ./Demo
 ```
+OR the equivalent script `./build.sh`
 
 Thanks and License
 --------
