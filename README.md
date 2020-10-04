@@ -20,6 +20,24 @@ complex. Contact me with any questions and I'll attempt to respond.
 Screenshot:
 ![screenshot](screenshot.png)
 
+Building
+-------
+
+Dependencies:
+* C++14
+* GLFW
+* GLAD
+* GLM
+* Freetype2
+* CMake (building)
+To build and play the demo, run the following commands:
+```
+mkdir build
+cmake . -B build
+cmake --build build
+./Demo
+```
+
 Thanks and License
 --------
 

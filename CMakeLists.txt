@@ -8,7 +8,7 @@ if (NOT EXISTS "${CMAKE_BINARY_DIR}/CMakeCache.txt" AND NOT CMAKE_BUILD_TYPE)
 		"Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel ..." FORCE)
 endif()
 
-add_subdirectory(src)
+add_subdirectory(lib)
 
 if (BUILD_DEMO)
 	add_subdirectory(demo)

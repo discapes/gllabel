@@ -3,7 +3,7 @@ include("${CMAKE_SOURCE_DIR}/cmake/CMakeRC.cmake")
 
 option(BUILD_SHARED_LIBS "Build shared libraries." ON)
 add_library(GLLabel
-	gridglyph.cpp
+	vgrid.cpp
 	label.cpp
 	types.cpp
 )
