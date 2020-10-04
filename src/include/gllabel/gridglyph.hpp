@@ -1,6 +1,8 @@
 #pragma once
 #include "types.hpp"
+#include <cstdint>
 #include <vector>
+#include <cstdint>
 #include <set>
 
 // Reprents a grid that is "overlayed" on top of a glyph, storing some

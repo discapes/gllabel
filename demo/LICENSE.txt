@@ -1,3 +1,6 @@
+This license applies to LiberationSans-Bold.ttf and LiberationSans-Regular.ttf
+
+
 Digitized data copyright (c) 2010 Google Corporation
 	with Reserved Font Arimo, Tinos and Cousine.
 Copyright (c) 2012 Red Hat, Inc.

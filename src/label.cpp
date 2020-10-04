@@ -22,8 +22,8 @@
  * (Dobbie, please let me know if you have issues with this.)
  */
 
-#include "label.hpp"
-#include "GridGlyph.hpp"
+#include <label.hpp>
+#include <gridglyph.hpp>
 #include <set>
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>

@@ -1,5 +1,5 @@
 #include <cmath>
-#include "types.hpp"
+#include <types.hpp>
 
 inline bool almostEqual(float a, float b)
 {

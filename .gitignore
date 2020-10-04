@@ -1,7 +1,6 @@
-demo
-bezierAtlas.bmp
-gridAtlas.bmp
-
 *.swp
 *.dSYM
 .DS_Store
+build
+bezierAtlas.bmp
+gridAtlas.bmp
