@@ -40,10 +40,5 @@ struct VGridAtlas {
 	// bytes per pixel that OpenGL supports (GL_RGBA8).
 	uint8_t depth;
 
-	VGridAtlas() : data(0), width(0), height(0), depth(0) { }
-
 	void WriteVGridAt(VGrid &grid, uint16_t atX, uint16_t atY);
-
-private:
-	void WriteVGridCellAt(VGrid &grid, size_t cellIdx, size_t atAtlasIdx);
 };
