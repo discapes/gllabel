@@ -4,8 +4,8 @@
  * Demo code for GLLabel. Depends on GLFW3, GLEW, GLM, FreeType2, and C++11.
  */
 
-#include "label.hpp"
-#include <glfw3.h>
+#include <gllabel/label.hpp>
+#include <GLFW/glfw3.h>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/transform.hpp>
 #include <codecvt>
@@ -63,9 +63,8 @@ int main()
 
 	// Create OpenGL context
 	glfwMakeContextCurrent(window);
-	glewExperimental = true;
-	if (glewInit() != GLEW_OK) {
-		fprintf(stderr, "Failed to initialize GLEW.\n");
+	if (!gladLoadGL()) {
+		fprintf(stderr, "Failed to initialize GLAD.\n");
 		glfwDestroyWindow(window);
 		glfwTerminate();
 		return -1;
