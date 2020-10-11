@@ -34,6 +34,11 @@ Dependencies
 To build, modify the `_INCLUDES` and `_LIBS` lines at the top of `makefile` to
 match your system's configuration, then run `make`.
 
+Styleguide
+----------
+* [Linux style](https://www.kernel.org/doc/html/v4.10/process/coding-style.html)
+* MyClass, MyNamespace, myVar, myFunc, myfile.h, myfile.cpp
+
 Thanks and License
 --------
 

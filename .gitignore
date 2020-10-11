@@ -1,8 +1,5 @@
 demo
-bezierAtlas.bmp
-gridAtlas.bmp
-
-*.swp
-*.dSYM
-.DS_Store
-.syntastic_cpp_config
+*.o
+*.so
+*.a
+.vscode
