@@ -43,7 +43,7 @@ int main()
 	glEnable(GL_BLEND);
 	glClearColor(160/255.0, 169/255.0, 175/255.0, 1.0);
 	
-	GLLabel label("Hi");
+	//GLLabel label("Hi");
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -52,7 +52,7 @@ int main()
 			
 		
 		glClear(GL_COLOR_BUFFER_BIT);
-		label.render(mat4(1));
+		//label.render(mat4(1));
 
 		glfwSwapBuffers(window);
 	}

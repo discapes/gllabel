@@ -1,8 +1,9 @@
 CXX = c++
+.DEFAULT_GOAL := demo
 LDLIBS = -lfreetype -lGLEW -lglfw -lGL
 INCLUDES = -Iinclude -I/usr/include/freetype2
 WARNINGS = -Wall -Wextra
-O = -Ofast
+O = -Ofast -pipe -march=native
 CXXFLAGS = -std=gnu++20
 override CXXFLAGS += $(O) $(WARNINGS) $(INCLUDES)
 
@@ -10,6 +11,7 @@ rundemo: demo
 	./demo
 demo: demo.o libgllabel.a
 	$(CXX) demo.o $(LDFLAGS) -L. -lgllabel $(LDLIBS) -o demo
+demo.o : include/gllabel/gllabel.hpp
 
 
 objects = lib/gllabel.o

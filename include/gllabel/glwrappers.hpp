@@ -19,18 +19,20 @@ public:
 
 	FT_Error setPixelSizes(FT_UInt pixel_width, FT_UInt pixel_height) { return error = FT_Set_Pixel_Sizes(face, pixel_width, pixel_height); }
 	FT_Error loadChar(FT_ULong char_code, FT_Int32 load_flags) { return error = FT_Load_Char(face, char_code, load_flags); }
+	FT_Error loadGlyph(FT_ULong glyph_index, FT_Int32 load_flags) { return error = FT_Load_Glyph(face, glyph_index, load_flags); }
 	FT_Face operator->() { return face; }
 };
 
+template<GLenum target>
 class Texture
 {
 	GLuint texture;
 public:
-	Texture() { glCreateTextures(GL_TEXTURE_2D, 1, &texture); }
+	Texture() { glCreateTextures(target, 1, &texture); }
 	~Texture() { if (texture != 0) { glDeleteTextures(1, &texture); log("Deleted texture %d", texture); } }
 	Texture(Texture&& other) noexcept : texture(other.texture) { other.texture = 0; }
 
-	void bind() { glActiveTexture(GL_TEXTURE0); return glBindTexture(GL_TEXTURE_2D, texture); }
+	void bind() { glActiveTexture(GL_TEXTURE0); return glBindTexture(target, texture); }
 	void generateMipmap() { return glGenerateTextureMipmap(texture); }
 	void storage2D(GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
 	{
